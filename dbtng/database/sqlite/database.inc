@@ -7,11 +7,11 @@
  */
 
 /**
- * @ingroup database
+ * @ingroup dbtng
  * @{
  */
 
-include_once DRUPAL_ROOT . '/includes/database/prefetch.inc';
+include_once drupal_get_path('module', 'dbtng') . '/database/prefetch.inc';
 
 /**
  * Specific SQLite implementation of DatabaseConnection.
@@ -429,5 +429,5 @@ class DatabaseStatement_sqlite extends DatabaseStatementPrefetch implements Iter
 }
 
 /**
- * @} End of "ingroup database".
+ * @} End of "ingroup dbtng".
  */

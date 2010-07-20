@@ -529,3 +529,8 @@ class DatabaseSchema_pgsql extends DatabaseSchema {
     }
   }
 }
+
+
+/**
+ * @} End of "ingroup schemaapi".
+ */

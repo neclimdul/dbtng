@@ -2,7 +2,7 @@
 // $Id: select.inc,v 1.42 2010/06/01 09:24:09 dries Exp $
 
 /**
- * @ingroup database
+ * @ingroup dbtng
  * @{
  */
 
@@ -1435,5 +1435,5 @@ class SelectQuery extends Query implements SelectQueryInterface {
 }
 
 /**
- * @} End of "ingroup database".
+ * @} End of "ingroup dbtng".
  */

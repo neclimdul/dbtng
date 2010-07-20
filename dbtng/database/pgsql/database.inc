@@ -7,7 +7,7 @@
  */
 
 /**
- * @ingroup database
+ * @ingroup dbtng
  * @{
  */
 
@@ -187,5 +187,5 @@ class DatabaseConnection_pgsql extends DatabaseConnection {
 }
 
 /**
- * @} End of "ingroup database".
+ * @} End of "ingroup dbtng".
  */
