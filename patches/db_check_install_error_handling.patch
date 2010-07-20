@@ -1,0 +1,44 @@
+Remove _db_check_install_needed()
+
+diff -r 58d239942c5d dbtng/database/database.inc
+--- a/dbtng/database/database.inc	Fri Jun 05 13:36:56 2009 -0700
++++ b/dbtng/database/database.inc	Fri Jun 05 13:40:03 2009 -0700
+@@ -593,7 +593,7 @@
+       }
+     }
+     catch (PDOException $e) {
+-      _db_check_install_needed();
++      // @TODO Add error handling here for _db_check_install
+       if ($options['throw_exception']) {
+         // Add additional debug information.
+         if ($query instanceof DatabaseStatementInterface) {
+@@ -1258,7 +1258,7 @@
+   final protected static function parseConnectionInfo() {
+     global $databases;
+ 
+-    _db_check_install_needed();
++    // @TODO Add error handling here for _db_check_install
+ 
+     $databaseInfo = $databases;
+     foreach ($databaseInfo as $index => $info) {
+@@ -1367,7 +1367,7 @@
+       // It is extremely rare that an exception will be generated here other
+       // than when installing. We therefore intercept it and try the installer,
+       // passing on the exception otherwise.
+-      _db_check_install_needed();
++      // @TODO Add error handling here for _db_check_install
+       throw $e;
+     }
+   }
+diff -r 58d239942c5d dbtng/database/pgsql/database.inc
+--- a/dbtng/database/pgsql/database.inc	Fri Jun 05 13:36:56 2009 -0700
++++ b/dbtng/database/pgsql/database.inc	Fri Jun 05 13:40:03 2009 -0700
+@@ -78,7 +78,7 @@
+       }
+     }
+     catch (PDOException $e) {
+-      _db_check_install_needed();
++      // @TODO Add error handling here for _db_check_install
+       if ($options['throw_exception']) {
+         // Add additional debug information.
+         if ($query instanceof DatabaseStatementInterface) {

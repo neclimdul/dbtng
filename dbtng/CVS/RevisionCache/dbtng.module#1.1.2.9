@@ -1,0 +1,788 @@
+<?php
+// $Id: dbtng.module,v 1.1.2.9 2010/07/08 21:01:03 mikeyp Exp $
+
+/**
+ * @file
+ * Drupal 7 database
+ * @author Michael Prasuhn <mike@shomeya.com>
+ * @link http://shomeya.com
+ */
+
+
+ /**
+  * Implementation of hook_autoload_info().
+  */
+ function dbtng_autoload_info() {
+   global $databases;
+   return array(
+     // database.inc
+     'Database' => array(
+       'file' => 'database/database.inc',
+     ),
+     'DatabaseConnection' => array(
+       'file' => 'database/database.inc',
+     ),
+     'DatabaseStatementBase' => array(
+       'file' => 'database/database.inc',
+     ),
+     'DatabaseStatementInterface' => array(
+       'file' => 'database/database.inc',
+     ),
+     'DatabaseTransaction' => array(
+       'file' => 'database/database.inc',
+     ),
+     'TransactionsNotSupportedException' => array(
+       'file' => 'database/database.inc',
+     ),
+     'NoActiveTransactionException' => array(
+       'file' => 'database/database.inc',
+     ),
+     'ExplicitTransactionsNotSupportedException' => array(
+       'file' => 'database/database.inc',
+     ),
+     'InvalidMergeQueryException' => array(
+       'file' => 'database/database.inc',
+     ),
+
+     // log.inc
+     'DatabaseLog' => array(
+       'file' => 'database/log.inc',
+     ),
+
+     // prefetch.inc
+     'DatabaseStatementPrefetch' => array(
+       'file' => 'database/prefetch.inc',
+     ),
+
+     // query.inc
+     'DatabaseCondition' => array(
+       'file' => 'database/query.inc',
+     ),
+     'DeleteQuery' => array(
+       'file' => 'database/query.inc',
+     ),
+     'InsertQuery' => array(
+       'file' => 'database/query.inc',
+     ),
+     'MergeQuery' => array(
+       'file' => 'database/query.inc',
+     ),
+     'Query' => array(
+       'file' => 'database/query.inc',
+     ),
+     'QueryAlterableInterface' => array(
+       'file' => 'database/query.inc',
+     ),
+     'QueryConditionInterface' => array(
+       'file' => 'database/query.inc',
+     ),
+     'QueryPlaceholderInterface' => array(
+       'file' => 'database/query.inc',
+     ),
+     'TruncateQuery' => array(
+       'file' => 'database/query.inc',
+     ),
+     'TruncateQuery' => array(
+       'file' => 'database/query.inc',
+     ),
+     'UpdateQuery' => array(
+       'file' => 'database/query.inc',
+     ),
+
+     // schema.inc
+     'DatabaseSchema' => array(
+       'file' => 'database/schema.inc',
+     ),
+
+     // select.inc
+     'QueryExtendableInterface' => array(
+       'file' => 'database/select.inc',
+     ),
+     'SelectQuery' => array(
+       'file' => 'database/select.inc',
+     ),
+     'SelectQueryExtender' => array(
+       'file' => 'database/select.inc',
+     ),
+     'SelectQueryInterface' => array(
+       'file' => 'database/select.inc',
+     ),
+
+     // MySQL
+
+     // mysql/database.inc
+     'DatabaseConnection_mysql' => array(
+       'file' => 'database/mysql/database.inc',
+     ),
+
+     // mysql/install.inc
+     'DatabaseInstaller_mysql' => array(
+       'file' => 'database/mysql/install.inc',
+     ),
+
+     // mysql/query.inc
+     'InsertQuery_mysql' => array(
+       'file' => 'database/mysql/query.inc',
+     ),
+     'MergeQuery_mysql' => array(
+       'file' => 'database/mysql/query.inc',
+     ),
+
+     // mysql/schema.inc
+     'DatabaseSchema_mysql' => array(
+       'file' => 'database/mysql/schema.inc',
+     ),
+
+
+     // PostgreSQL
+
+     // pgsql/database.inc
+     'DatabaseConnection_pgsql' => array(
+       'file' => 'database/pgsql/database.inc',
+     ),
+
+     // pgsql/install.inc
+     'DatabaseInstaller_pgsql' => array(
+       'file' => 'database/pgsql/install.inc',
+     ),
+
+     // pgsql/query.inc
+     'InsertQuery_pgsql' => array(
+       'file' => 'database/pgsql/query.inc',
+     ),
+     'UpdateQuery_pgsql' => array(
+       'file' => 'database/pgsql/query.inc',
+     ),
+
+     // pgsql/schema.inc
+     'DatabaseSchema_pgsql' => array(
+       'file' => 'database/pgsql/schema.inc',
+     ),
+
+     // SQLite
+
+     // sqlite/database.inc
+     'DatabaseConnection_sqlite' => array(
+       'file' => 'database/sqlite/database.inc',
+     ),
+     'DatabaseStatement_sqlite' => array(
+       'file' => 'database/sqlite/database.inc',
+     ),
+
+     // sqlite/install.inc
+     'DatabaseInstaller_sqlite' => array(
+       'file' => 'database/sqlite/install.inc',
+     ),
+
+     // sqlite/query.inc
+     'DeleteQuery_sqlite' => array(
+       'file' => 'database/sqlite/query.inc',
+     ),
+     'InsertQuery_sqlite' => array(
+       'file' => 'database/sqlite/query.inc',
+     ),
+     'TruncateQuery_sqlite' => array(
+       'file' => 'database/sqlite/query.inc',
+     ),
+     'UpdateQuery_sqlite' => array(
+       'file' => 'database/sqlite/query.inc',
+     ),
+
+     // sqlite/schema.inc
+     'DatabaseSchema_sqlite' => array(
+       'file' => 'database/sqlite/schema.inc',
+     ),
+
+     // includes
+     'PagerDefault' => array(
+       'file' => 'includes/pager.inc',
+     ),
+     'TableSort' => array(
+       'file' => 'includes/tablesort.inc',
+     ),
+   );
+ }
+
+/**
+ * Implementation of hook_init().
+ */
+function dbtng_init() {
+  global $db_url, $databases;
+
+  if (empty($db_url)) {
+    // @TODO: Add some error logging here?
+    return;
+  }
+
+  // Load the database URL, or all items from the settings array into global
+  // $databases which will be automatically parsed by DBTNG in
+  // Databse::ParseConnectionInfo.
+  $databases = array();
+  if (is_array($db_url)) {
+    foreach ($db_url as $key => $connect_url) {
+      $databases[$key]['default'] = dbtng_get_db_settings($connect_url);
+    }
+  }
+  else {
+    $databases['default']['default'] = dbtng_get_db_settings($db_url);
+  }
+}
+
+/**
+ * Helper function to parse a Drupal 6 style DB connection URL.
+ */
+function dbtng_get_db_settings($connect_url) {
+  $info = parse_url($connect_url);
+
+  $info['scheme'] = ($info['scheme'] == 'mysqli') ? 'mysql' : $info['scheme'];
+  $info['path'] = str_replace('/', '', $info['path']);
+  if (empty($info['port'])) {
+    // provide a default port if it's not explicit on $connect_url
+    $info['port'] = getservbyname($info['scheme'], 'tcp');
+  }
+
+  $settings = array(
+    'driver' => $info['scheme'],
+    'database' => $info['path'],
+    'username' => $info['user'],
+    'password' => $info['pass'],
+    'host' => $info['host'],
+    'port' => $info['port']
+  );
+  return $settings;
+}
+
+/**
+ * @defgroup dbtng PDO Database abstraction layer
+ * @{
+ */
+
+
+/**
+ * The following utility functions are simply convenience wrappers.
+ * They should never, ever have any database-specific code in them.
+ */
+
+/**
+ * Returns a new InsertQuery object for the active database.
+ *
+ * @param $table
+ *   The table into which to insert.
+ * @param $options
+ *   An array of options to control how the query operates.
+ * @return InsertQuery
+ *   A new InsertQuery object for this connection.
+ */
+function db_insert($table, array $options = array()) {
+  if (empty($options['target']) || $options['target'] == 'slave') {
+    $options['target'] = 'default';
+  }
+  return Database::getConnection($options['target'])->insert($table, $options);
+}
+
+/**
+ * Returns a new MergeQuery object for the active database.
+ *
+ * @param $table
+ *   The table into which to merge.
+ * @param $options
+ *   An array of options to control how the query operates.
+ * @return MergeQuery
+ *   A new MergeQuery object for this connection.
+ */
+function db_merge($table, array $options = array()) {
+  if (empty($options['target']) || $options['target'] == 'slave') {
+    $options['target'] = 'default';
+  }
+  return Database::getConnection($options['target'])->merge($table, $options);
+}
+
+/**
+ * Returns a new UpdateQuery object for the active database.
+ *
+ * @param $table
+ *   The table to update.
+ * @param $options
+ *   An array of options to control how the query operates.
+ * @return UpdateQuery
+ *   A new UpdateQuery object for this connection.
+ */
+function db_update($table, array $options = array()) {
+  if (empty($options['target']) || $options['target'] == 'slave') {
+    $options['target'] = 'default';
+  }
+  return Database::getConnection($options['target'])->update($table, $options);
+}
+
+/**
+ * Returns a new DeleteQuery object for the active database.
+ *
+ * @param $table
+ *   The table from which to delete.
+ * @param $options
+ *   An array of options to control how the query operates.
+ * @return DeleteQuery
+ *   A new DeleteQuery object for this connection.
+ */
+function db_delete($table, array $options = array()) {
+  if (empty($options['target']) || $options['target'] == 'slave') {
+    $options['target'] = 'default';
+  }
+  return Database::getConnection($options['target'])->delete($table, $options);
+}
+
+/**
+ * Returns a new TruncateQuery object for the active database.
+ *
+ * @param $table
+ *   The table from which to delete.
+ * @param $options
+ *   An array of options to control how the query operates.
+ * @return TruncateQuery
+ *   A new TruncateQuery object for this connection.
+ */
+function db_truncate($table, array $options = array()) {
+  if (empty($options['target']) || $options['target'] == 'slave') {
+    $options['target'] = 'default';
+  }
+  return Database::getConnection($options['target'])->truncate($table, $options);
+}
+
+/**
+ * Returns a new SelectQuery object for the active database.
+ *
+ * @param $table
+ *   The base table for this query. May be a string or another SelectQuery
+ *   object. If a query object is passed, it will be used as a subselect.
+ * @param $alias
+ *   The alias for the base table of this query.
+ * @param $options
+ *   An array of options to control how the query operates.
+ * @return SelectQuery
+ *   A new SelectQuery object for this connection.
+ */
+function db_select($table, $alias = NULL, array $options = array()) {
+  if (empty($options['target'])) {
+    $options['target'] = 'default';
+  }
+  return Database::getConnection($options['target'])->select($table, $alias, $options);
+}
+
+/**
+ * Returns a new transaction object for the active database.
+ *
+ * @param $required
+ *   TRUE if the calling code will not function properly without transaction
+ *   support.  If set to TRUE and the active database does not support
+ *   transactions, a TransactionsNotSupportedException exception will be thrown.
+ * @param $options
+ *   An array of options to control how the transaction operates.  Only the
+ *   target key has any meaning in this case.
+ * @return DatabaseTransaction
+ *   A new DatabaseTransaction object for this connection.
+ */
+function db_transaction($required = FALSE, Array $options = array()) {
+  if (empty($options['target'])) {
+    $options['target'] = 'default';
+  }
+  return Database::getConnection($options['target'])->startTransaction($required);
+}
+
+/**
+ * Closes the active database connection.
+ *
+ * @param $options
+ *   An array of options to control which connection is closed.  Only the target
+ *   key has any meaning in this case.
+ */
+function db_close(array $options = array()) {
+  if (empty($options['target'])) {
+    $options['target'] = NULL;
+  }
+  Database::closeConnection($options['target']);
+}
+
+/**
+ * Retrieve the name of the currently active database driver, such as "mysql" or
+ * "pgsql".
+ *
+ * @return The name of the currently active database driver.
+ */
+function dbtng_driver() {
+  return Database::getConnection()->driver();
+}
+
+/**
+ * Sets a new active database.
+ *
+ * @param $key
+ *   The key in the $databases array to set as the default database.
+ * @returns
+ *   The key of the formerly active database.
+ */
+function dbtng_set_active($key = 'default') {
+  return Database::setActiveConnection($key);
+}
+
+/**
+ * Determine if there is an active connection.
+ *
+ * Note that this method will return FALSE if no connection has been established
+ * yet, even if one could be.
+ *
+ * @return
+ *   TRUE if there is at least one database connection established, FALSE
+ *   otherwise.
+ */
+function dbtng_is_active() {
+  return Database::isActiveConnection();
+}
+
+/**
+ * Restrict a dynamic table, column or constraint name to safe characters.
+ *
+ * Only keeps alphanumeric and underscores.
+ *
+ * @param $table
+ *   The table name to escape.
+ * @return
+ *   The escaped table name as a string.
+ */
+function dbtng_escape_table($table) {
+  return Database::getConnection()->escapeTable($table);
+}
+
+/**
+ * Create a new table from a Drupal table definition.
+ *
+ * @param $name
+ *   The name of the table to create.
+ * @param $table
+ *   A Schema API table definition array.
+ */
+function dbtng_create_table($name, $table) {
+  if (!db_table_exists($name)) {
+    return Database::getConnection()->schema()->createTable($name, $table);
+  }
+}
+
+/**
+ * Return an array of field names from an array of key/index column specifiers.
+ *
+ * This is usually an identity function but if a key/index uses a column prefix
+ * specification, this function extracts just the name.
+ *
+ * @param $fields
+ *   An array of key/index column specifiers.
+ * @return
+ *   An array of field names.
+ */
+function dbtng_field_names($fields) {
+  return Database::getConnection()->schema()->fieldNames($fields);
+}
+
+/**
+ * Check if a table exists.
+ */
+function dbtng_table_exists($table) {
+  return Database::getConnection()->schema()->tableExists($table);
+}
+
+/**
+ * Check if a column exists in the given table.
+ */
+function dbtng_column_exists($table, $column) {
+  return Database::getConnection()->schema()->columnExists($table, $column);
+}
+
+/**
+ * Find all tables that are like the specified base table name.
+ *
+ * @param $table_expression
+ *   An SQL expression, for example "simpletest%" (without the quotes).
+ *   BEWARE: this is not prefixed, the caller should take care of that.
+ * @return
+ *   Array, both the keys and the values are the matching tables.
+ */
+function dbtng_find_tables($table_expression) {
+  return Database::getConnection()->schema()->findTables($table_expression);
+}
+
+function _dbtng_create_keys_sql($spec) {
+  return Database::getConnection()->schema()->createKeysSql($spec);
+}
+
+/**
+ * This maps a generic data type in combination with its data size
+ * to the engine-specific data type.
+ */
+function dbtng_type_map() {
+  return Database::getConnection()->schema()->getFieldTypeMap();
+}
+
+/**
+ * Rename a table.
+ *
+ * @param $table
+ *   The table to be renamed.
+ * @param $new_name
+ *   The new name for the table.
+ */
+function dbtng_rename_table($table, $new_name) {
+  return Database::getConnection()->schema()->renameTable($table, $new_name);
+}
+
+/**
+ * Drop a table.
+ *
+ * @param $table
+ *   The table to be dropped.
+ */
+function dbtng_drop_table($table) {
+  return Database::getConnection()->schema()->dropTable($table);
+}
+
+/**
+ * Add a new field to a table.
+ *
+ * @param $table
+ *   Name of the table to be altered.
+ * @param $field
+ *   Name of the field to be added.
+ * @param $spec
+ *   The field specification array, as taken from a schema definition. The
+ *   specification may also contain the key 'initial'; the newly-created field
+ *   will be set to the value of the key in all rows. This is most useful for
+ *   creating NOT NULL columns with no default value in existing tables.
+ * @param $keys_new
+ *   Optional keys and indexes specification to be created on the table along
+ *   with adding the field. The format is the same as a table specification, but
+ *   without the 'fields' element. If you are adding a type 'serial' field, you
+ *   MUST specify at least one key or index including it in this array. See
+ *   dbtng_change_field() for more explanation why.
+ * @see dbtng_change_field()
+ */
+function dbtng_add_field($table, $field, $spec, $keys_new = array()) {
+  return Database::getConnection()->schema()->addField($table, $field, $spec, $keys_new);
+}
+
+/**
+ * Drop a field.
+ *
+ * @param $table
+ *   The table to be altered.
+ * @param $field
+ *   The field to be dropped.
+ */
+function dbtng_drop_field($table, $field) {
+  return Database::getConnection()->schema()->dropField($table, $field);
+}
+
+/**
+ * Set the default value for a field.
+ *
+ * @param $table
+ *   The table to be altered.
+ * @param $field
+ *   The field to be altered.
+ * @param $default
+ *   Default value to be set. NULL for 'default NULL'.
+ */
+function dbtng_field_set_default($table, $field, $default) {
+  return Database::getConnection()->schema()->fieldSetDefault($table, $field, $default);
+}
+
+/**
+ * Set a field to have no default value.
+ *
+ * @param $table
+ *   The table to be altered.
+ * @param $field
+ *   The field to be altered.
+ */
+function dbtng_field_set_no_default($table, $field) {
+  return Database::getConnection()->schema()->fieldSetNoDefault($table, $field);
+}
+
+/**
+ * Adds a primary key to a database table.
+ *
+ * @param $table
+ *   Name of the table to be altered.
+ * @param $fields
+ *   Array of fields for the primary key.
+ */
+function dbtng_add_primary_key($table, $fields) {
+  return Database::getConnection()->schema()->addPrimaryKey($table, $fields);
+}
+
+/**
+ * Drops the primary key of a database table.
+ *
+ * @param $table
+ *   Name of the table to be altered.
+ */
+function dbtng_drop_primary_key($table) {
+  return Database::getConnection()->schema()->dropPrimaryKey($table);
+}
+
+/**
+ * Add a unique key.
+ *
+ * @param $table
+ *   The table to be altered.
+ * @param $name
+ *   The name of the key.
+ * @param $fields
+ *   An array of field names.
+ */
+function dbtng_add_unique_key($table, $name, $fields) {
+  return Database::getConnection()->schema()->addUniqueKey($table, $name, $fields);
+}
+
+/**
+ * Drop a unique key.
+ *
+ * @param $table
+ *   The table to be altered.
+ * @param $name
+ *   The name of the key.
+ */
+function dbtng_drop_unique_key($table, $name) {
+  return Database::getConnection()->schema()->dropUniqueKey($table, $name);
+}
+
+/**
+ * Add an index.
+ *
+ * @param $table
+ *   The table to be altered.
+ * @param $name
+ *   The name of the index.
+ * @param $fields
+ *   An array of field names.
+ */
+function dbtng_add_index($table, $name, $fields) {
+  return Database::getConnection()->schema()->addIndex($table, $name, $fields);
+}
+
+/**
+ * Drop an index.
+ *
+ * @param $table
+ *   The table to be altered.
+ * @param $name
+ *   The name of the index.
+ */
+function dbtng_drop_index($table, $name) {
+  return Database::getConnection()->schema()->dropIndex($table, $name);
+}
+
+/**
+ * Change a field definition.
+ *
+ * IMPORTANT NOTE: To maintain database portability, you have to explicitly
+ * recreate all indices and primary keys that are using the changed field.
+ *
+ * That means that you have to drop all affected keys and indexes with
+ * dbtng_drop_{primary_key,unique_key,index}() before calling dbtng_change_field().
+ * To recreate the keys and indices, pass the key definitions as the optional
+ * $keys_new argument directly to dbtng_change_field().
+ *
+ * For example, suppose you have:
+ * @code
+ * $schema['foo'] = array(
+ *   'fields' => array(
+ *     'bar' => array('type' => 'int', 'not null' => TRUE)
+ *   ),
+ *   'primary key' => array('bar')
+ * );
+ * @endcode
+ * and you want to change foo.bar to be type serial, leaving it as the primary
+ * key. The correct sequence is:
+ * @code
+ * dbtng_drop_primary_key('foo');
+ * dbtng_change_field('foo', 'bar', 'bar',
+ *   array('type' => 'serial', 'not null' => TRUE),
+ *   array('primary key' => array('bar')));
+ * @endcode
+ *
+ * The reasons for this are due to the different database engines:
+ *
+ * On PostgreSQL, changing a field definition involves adding a new field and
+ * dropping an old one which causes any indices, primary keys and sequences
+ * (from serial-type fields) that use the changed field to be dropped.
+ *
+ * On MySQL, all type 'serial' fields must be part of at least one key or index
+ * as soon as they are created. You cannot use
+ * dbtng_add_{primary_key,unique_key,index}() for this purpose because the ALTER
+ * TABLE command will fail to add the column without a key or index
+ * specification. The solution is to use the optional $keys_new argument to
+ * create the key or index at the same time as field.
+ *
+ * You could use dbtng_add_{primary_key,unique_key,index}() in all cases unless you
+ * are converting a field to be type serial. You can use the $keys_new argument
+ * in all cases.
+ *
+ * @param $table
+ *   Name of the table.
+ * @param $field
+ *   Name of the field to change.
+ * @param $field_new
+ *   New name for the field (set to the same as $field if you don't want to
+ *   change the name).
+ * @param $spec
+ *   The field specification for the new field.
+ * @param $keys_new
+ *   Optional keys and indexes specification to be created on the table along
+ *   with changing the field. The format is the same as a table specification
+ *   but without the 'fields' element.
+ */
+function dbtng_change_field($table, $field, $field_new, $spec, $keys_new = array()) {
+  return Database::getConnection()->schema()->changeField($table, $field, $field_new, $spec, $keys_new);
+}
+
+/**
+ * Execute an arbitrary query string against the active database.
+ *
+ * Do not use this function for INSERT, UPDATE, or DELETE queries. Those should
+ * be handled via the appropriate query builder factory. Use this function for
+ * SELECT queries that do not require a query builder.
+ *
+ * @see DatabaseConnection::defaultOptions()
+ * @param $query
+ *   The prepared statement query to run. Although it will accept both named and
+ *   unnamed placeholders, named placeholders are strongly preferred as they are
+ *   more self-documenting.
+ * @param $args
+ *   An array of values to substitute into the query. If the query uses named
+ *   placeholders, this is an associative array in any order. If the query uses
+ *   unnamed placeholders (?), this is an indexed array and the order must match
+ *   the order of placeholders in the query string.
+ * @param $options
+ *   An array of options to control how the query operates.
+ * @return DatabaseStatementInterface
+ *   A prepared statement object, already executed.
+ */
+function dbtng_query($query, array $args = array(), array $options = array()) {
+  if (empty($options['target'])) {
+    $options['target'] = 'default';
+  }
+
+  return Database::getConnection($options['target'])->query($query, $args, $options);
+}
+
+/**
+ * @} End of "defgroup dbtng".
+ *//**
+ * Check if an index exists.
+ *
+ * @param $name
+ *   Index name.
+ * @return
+ *   TRUE if the given index exists, otherwise FALSE.
+ */
+function dbtng_index_exists($name) {
+  return Database::getConnection()->schema()->indexExists($name);
+}
+

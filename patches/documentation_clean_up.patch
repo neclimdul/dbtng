@@ -1,0 +1,275 @@
+Documentation clean up
+
+diff -r 5e2ec792f794 dbtng/database/database.inc
+--- a/dbtng/database/database.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/database.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -6,9 +6,12 @@
+  * Base classes for the database layer.
+  */
+ 
++ /**
++  * @ingroup dbtng
++  * @{
++  */
++
+ /**
+- * @defgroup database Database abstraction layer
+- * @{
+  * Allow the use of different database servers using the same code base.
+  *
+  * Drupal provides a database abstraction layer to provide developers with
+@@ -1787,28 +1790,5 @@
+ }
+ 
+ /**
+- * The following utility functions are simply convenience wrappers.
+- * They should never, ever have any database-specific code in them.
++ * @} End of "ingroup dbtng".
+  */
+-
+-/**
+- * @} End of "defgroup database".
+- */
+-
+-
+-/**
+- * @} End of "ingroup schemaapi".
+- */
+-
+-/**
+- * Redirect the user to the installation script if Drupal has not been
+- * installed yet (i.e., if no $databases array has been defined in the
+- * settings file) and we are not already there. Otherwise, do nothing.
+- */
+-function _db_check_install_needed() {
+-  global $databases;
+-  if (empty($databases) && !drupal_installation_attempted()) {
+-    include_once DRUPAL_ROOT . '/includes/install.inc';
+-    install_goto('install.php');
+-  }
+-}
+\ No newline at end of file
+diff -r 5e2ec792f794 dbtng/database/mysql/database.inc
+--- a/dbtng/database/mysql/database.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/mysql/database.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -7,7 +7,7 @@
+  */
+ 
+ /**
+- * @ingroup database
++ * @ingroup dbtng
+  * @{
+  */
+ 
+@@ -72,5 +72,5 @@
+ 
+ 
+ /**
+- * @} End of "ingroup database".
++ * @} End of "ingroup dbtng".
+  */
+diff -r 5e2ec792f794 dbtng/database/mysql/query.inc
+--- a/dbtng/database/mysql/query.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/mysql/query.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -2,7 +2,7 @@
+ // $Id: query.inc,v 1.13 2009/07/21 01:56:36 webchick Exp $
+ 
+ /**
+- * @ingroup database
++ * @ingroup dbtng
+  * @{
+  */
+ 
+@@ -199,5 +199,5 @@
+ }
+ 
+ /**
+- * @} End of "ingroup database".
++ * @} End of "ingroup dbtng".
+  */
+diff -r 5e2ec792f794 dbtng/database/pgsql/database.inc
+--- a/dbtng/database/pgsql/database.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/pgsql/database.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -7,7 +7,7 @@
+  */
+ 
+ /**
+- * @ingroup database
++ * @ingroup dbtng
+  * @{
+  */
+ 
+@@ -129,5 +129,5 @@
+ }
+ 
+ /**
+- * @} End of "ingroup database".
++ * @} End of "ingroup dbtng".
+  */
+diff -r 5e2ec792f794 dbtng/database/pgsql/query.inc
+--- a/dbtng/database/pgsql/query.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/pgsql/query.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -2,7 +2,7 @@
+ // $Id: query.inc,v 1.16 2009/09/11 02:47:11 webchick Exp $
+ 
+ /**
+- * @ingroup database
++ * @ingroup dbtng
+  * @{
+  */
+ 
+@@ -174,6 +174,9 @@
+   }
+ }
+ 
++/**
++ * @} End of "ingroup dbtng".
++ */
+ class SelectQuery_pgsql extends SelectQuery {
+ 
+   public function orderRandom() {
+diff -r 5e2ec792f794 dbtng/database/pgsql/schema.inc
+--- a/dbtng/database/pgsql/schema.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/pgsql/schema.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -578,3 +578,8 @@
+     $this->connection->query('SELECT obj_description(oid, ?) FROM pg_class WHERE relname = ?', array('pg_class', $table))->fetchField();
+   }
+ }
++
++
++/**
++ * @} End of "ingroup schemaapi".
++ */
+\ No newline at end of file
+diff -r 5e2ec792f794 dbtng/database/prefetch.inc
+--- a/dbtng/database/prefetch.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/prefetch.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -10,7 +10,7 @@
+  */
+ 
+ /**
+- * @ingroup database
++ * @ingroup dbtng
+  * @{
+  */
+ 
+@@ -500,6 +500,6 @@
+ }
+ 
+ /**
+- * @} End of "ingroup database".
++ * @} End of "ingroup dbtng".
+  */
+ 
+diff -r 5e2ec792f794 dbtng/database/query.inc
+--- a/dbtng/database/query.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/query.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -2,7 +2,7 @@
+ // $Id: query.inc,v 1.31 2009/08/29 05:43:34 dries Exp $
+ 
+ /**
+- * @ingroup database
++ * @ingroup dbtng
+  * @{
+  */
+ 
+@@ -1347,5 +1347,5 @@
+ }
+ 
+ /**
+- * @} End of "ingroup database".
++ * @} End of "ingroup dbtng".
+  */
+diff -r 5e2ec792f794 dbtng/database/select.inc
+--- a/dbtng/database/select.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/select.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -2,7 +2,7 @@
+ // $Id: select.inc,v 1.24 2009/09/18 00:04:21 webchick Exp $
+ 
+ /**
+- * @ingroup database
++ * @ingroup dbtng
+  * @{
+  */
+ 
+@@ -1382,5 +1382,5 @@
+ }
+ 
+ /**
+- * @} End of "ingroup database".
++ * @} End of "ingroup dbtng".
+  */
+diff -r 5e2ec792f794 dbtng/database/sqlite/database.inc
+--- a/dbtng/database/sqlite/database.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/sqlite/database.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -7,7 +7,7 @@
+  */
+ 
+ /**
+- * @ingroup database
++ * @ingroup dbtng
+  * @{
+  */
+ 
+@@ -290,5 +290,5 @@
+ }
+ 
+ /**
+- * @} End of "ingroup database".
++ * @} End of "ingroup dbtng".
+  */
+diff -r 5e2ec792f794 dbtng/database/sqlite/query.inc
+--- a/dbtng/database/sqlite/query.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/sqlite/query.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -7,7 +7,7 @@
+  */
+ 
+ /**
+- * @ingroup database
++ * @ingroup dbtng
+  * @{
+  */
+ 
+@@ -151,5 +151,5 @@
+ }
+ 
+ /**
+- * @} End of "ingroup database".
++ * @} End of "ingroup dbtng".
+  */
+diff -r 5e2ec792f794 dbtng/database/sqlite/schema.inc
+--- a/dbtng/database/sqlite/schema.inc	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/database/sqlite/schema.inc	Sat Oct 10 17:25:10 2009 -0700
+@@ -560,3 +560,7 @@
+     return $result->fetchAllKeyed(0, 0);
+   }
+ }
++
++/**
++ * @} End of "ingroup schemaapi".
++ */
+\ No newline at end of file
+diff -r 5e2ec792f794 dbtng/dbtng.module
+--- a/dbtng/dbtng.module	Sat Oct 10 17:24:49 2009 -0700
++++ b/dbtng/dbtng.module	Sat Oct 10 17:25:10 2009 -0700
+@@ -250,6 +250,12 @@
+ }
+ 
+ /**
++ * @defgroup dbtng PDO Database abstraction layer
++ * @{
++ */
++
++
++/**
+  * The following utility functions are simply convenience wrappers.
+  * They should never, ever have any database-specific code in them.
+  */
+@@ -770,3 +776,6 @@
+   return Database::getConnection($options['target'])->query($query, $args, $options);
+ }
+ 
++/**
++ * @} End of "defgroup dbtng".
++ */
+\ No newline at end of file

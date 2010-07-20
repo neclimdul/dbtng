@@ -1,0 +1,6 @@
+; $Id: dbtng.info,v 1.1.2.1 2009/06/30 21:48:50 mikeyp Exp $
+name = DBTNG
+description = Drupal 7 database 
+core = 6.x
+dependencies[] = autoload
+php = 5.2

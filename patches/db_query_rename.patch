@@ -1,0 +1,136 @@
+diff -r 5449d6bda702 dbtng/database/database.inc
+--- a/dbtng/database/database.inc	Sat Oct 10 17:09:51 2009 -0700
++++ b/dbtng/database/database.inc	Sat Oct 10 17:13:29 2009 -0700
+@@ -25,7 +25,7 @@
+  * The system is built atop PHP's PDO (PHP Data Objects) database API and
+  * inherits much of its syntax and semantics.
+  *
+- * Most Drupal database SELECT queries are performed by a call to db_query() or
++ * Most Drupal database SELECT queries are performed by a call to dbtng_query() or
+  * db_query_range(). Module authors should also consider using the PagerDefault
+  * Extender for queries that return results that need to be presented on
+  * multiple pages, and the Tablesort Extender for generating appropriate queries
+@@ -46,7 +46,7 @@
+  * @endcode
+  * Curly braces are used around "node" to provide table prefixing via
+  * DatabaseConnection::prefixTables(). The explicit use of a user ID is pulled
+- * out into an argument passed to db_query() so that SQL injection attacks
++ * out into an argument passed to dbtng_query() so that SQL injection attacks
+  * from user input can be caught and nullified. The LIMIT syntax varies between
+  * database servers, so that is abstracted into db_query_range() arguments.
+  * Finally, note the PDO-based ability to foreach() over the result set.
+diff -r 5449d6bda702 dbtng/database/pgsql/install.inc
+--- a/dbtng/database/pgsql/install.inc	Sat Oct 10 17:09:51 2009 -0700
++++ b/dbtng/database/pgsql/install.inc	Sat Oct 10 17:13:29 2009 -0700
+@@ -32,7 +32,7 @@
+    */
+   protected function checkEncoding() {
+     try {
+-      if (db_query('SHOW server_encoding')->fetchField() == 'UTF8') { 
++      if (dbtng_query('SHOW server_encoding')->fetchField() == 'UTF8') { 
+         $this->pass(st('Database is encoded in UTF-8'));
+       }
+       else {
+@@ -61,39 +61,39 @@
+ 
+     try {
+       // Create functions.
+-      db_query('CREATE OR REPLACE FUNCTION "greatest"(numeric, numeric) RETURNS numeric AS
++      dbtng_query('CREATE OR REPLACE FUNCTION "greatest"(numeric, numeric) RETURNS numeric AS
+         \'SELECT CASE WHEN (($1 > $2) OR ($2 IS NULL)) THEN $1 ELSE $2 END;\'
+         LANGUAGE \'sql\''
+       );
+-      db_query('CREATE OR REPLACE FUNCTION "greatest"(numeric, numeric, numeric) RETURNS numeric AS
++      dbtng_query('CREATE OR REPLACE FUNCTION "greatest"(numeric, numeric, numeric) RETURNS numeric AS
+         \'SELECT greatest($1, greatest($2, $3));\'
+         LANGUAGE \'sql\''
+       );
+       // Don't use {} around pg_proc table.
+-      if (!db_query("SELECT COUNT(*) FROM pg_proc WHERE proname = 'rand'")->fetchField()) {
+-        db_query('CREATE OR REPLACE FUNCTION "rand"() RETURNS float AS
++      if (!dbtng_query("SELECT COUNT(*) FROM pg_proc WHERE proname = 'rand'")->fetchField()) {
++        dbtng_query('CREATE OR REPLACE FUNCTION "rand"() RETURNS float AS
+           \'SELECT random();\'
+           LANGUAGE \'sql\''
+         );
+       }
+ 
+       // Don't use {} around pg_proc table.
+-      if (!db_query("SELECT COUNT(*) FROM pg_proc WHERE proname = 'concat'")->fetchField()) {
+-        db_query('CREATE OR REPLACE FUNCTION "concat"(text, text) RETURNS text AS
++      if (!dbtng_query("SELECT COUNT(*) FROM pg_proc WHERE proname = 'concat'")->fetchField()) {
++        dbtng_query('CREATE OR REPLACE FUNCTION "concat"(text, text) RETURNS text AS
+           \'SELECT $1 || $2;\'
+           LANGUAGE \'sql\''
+         );
+       }
+-      db_query('CREATE OR REPLACE FUNCTION "if"(boolean, text, text) RETURNS text AS
++      dbtng_query('CREATE OR REPLACE FUNCTION "if"(boolean, text, text) RETURNS text AS
+         \'SELECT CASE WHEN $1 THEN $2 ELSE $3 END;\'
+         LANGUAGE \'sql\''
+       );
+-      db_query('CREATE OR REPLACE FUNCTION "if"(boolean, integer, integer) RETURNS integer AS
++      dbtng_query('CREATE OR REPLACE FUNCTION "if"(boolean, integer, integer) RETURNS integer AS
+         \'SELECT CASE WHEN $1 THEN $2 ELSE $3 END;\'
+         LANGUAGE \'sql\''
+       );
+ 
+-      db_query('CREATE OR REPLACE FUNCTION "substring_index"(text, text, integer) RETURNS text AS
++      dbtng_query('CREATE OR REPLACE FUNCTION "substring_index"(text, text, integer) RETURNS text AS
+         \'SELECT array_to_string((string_to_array($1, $2)) [1:$3], $2);\'
+         LANGUAGE \'sql\''
+       );
+diff -r 5449d6bda702 dbtng/database/query.inc
+--- a/dbtng/database/query.inc	Sat Oct 10 17:09:51 2009 -0700
++++ b/dbtng/database/query.inc	Sat Oct 10 17:13:29 2009 -0700
+@@ -787,7 +787,7 @@
+     $select = $select->countQuery();
+     $sql = (string)$select;
+     $arguments = $select->getArguments();
+-    $num_existing = db_query($sql, $arguments)->fetchField();
++    $num_existing = dbtng_query($sql, $arguments)->fetchField();
+ 
+ 
+     if ($num_existing) {
+diff -r 5449d6bda702 dbtng/database/schema.inc
+--- a/dbtng/database/schema.inc	Sat Oct 10 17:09:51 2009 -0700
++++ b/dbtng/database/schema.inc	Sat Oct 10 17:13:29 2009 -0700
+@@ -220,7 +220,7 @@
+     // couldn't use db_select() here because it would prefix
+     // information_schema.tables and the query would fail.
+     // Don't use {} around information_schema.tables table.
+-    return db_query("SELECT table_name FROM information_schema.tables WHERE " . (string) $condition, $condition->arguments())->fetchField();
++    return dbtng_query("SELECT table_name FROM information_schema.tables WHERE " . (string) $condition, $condition->arguments())->fetchField();
+   }
+ 
+   /**
+@@ -240,7 +240,7 @@
+     // couldn't use db_select() here because it would prefix
+     // information_schema.tables and the query would fail.
+     // Don't use {} around information_schema.tables table.
+-    return db_query("SELECT table_name FROM information_schema.tables WHERE " . (string) $condition, $condition->arguments())->fetchAllKeyed(0, 0);
++    return dbtng_query("SELECT table_name FROM information_schema.tables WHERE " . (string) $condition, $condition->arguments())->fetchAllKeyed(0, 0);
+   }
+ 
+   /**
+@@ -255,7 +255,7 @@
+     // couldn't use db_select() here because it would prefix
+     // information_schema.tables and the query would fail.
+     // Don't use {} around information_schema.columns table.
+-    return db_query("SELECT column_name FROM information_schema.columns WHERE " . (string) $condition, $condition->arguments())->fetchAllKeyed(0, 0);
++    return dbtng_query("SELECT column_name FROM information_schema.columns WHERE " . (string) $condition, $condition->arguments())->fetchAllKeyed(0, 0);
+   }
+ 
+   /**
+diff -r 5449d6bda702 dbtng/database/sqlite/schema.inc
+--- a/dbtng/database/sqlite/schema.inc	Sat Oct 10 17:09:51 2009 -0700
++++ b/dbtng/database/sqlite/schema.inc	Sat Oct 10 17:13:29 2009 -0700
+@@ -554,7 +554,7 @@
+    */
+   public function findTables($table_expression) {
+     // Don't use {} around sqlite_master table.
+-    $result = db_query("SELECT name FROM sqlite_master WHERE name LIKE :table_name", array(
++    $result = dbtng_query("SELECT name FROM sqlite_master WHERE name LIKE :table_name", array(
+       ':table_name' => $table_expression,
+     ));
+     return $result->fetchAllKeyed(0, 0);

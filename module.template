@@ -1,0 +1,68 @@
+<?php
+// $Id: dbtng.module,v 1.2 2009/06/05 03:42:56 mikeyp Exp $
+
+/**
+ * @file
+ * Drupal 7 database 
+ * @author Michael Prasuhn <mike@shomeya.com>
+ * @link http://shomeya.com
+ */
+
+function dbtng_boot() {
+  spl_autoload_register('db_autoload');
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function dbtng_init() {
+  global $db_url, $databases;
+
+  if (empty($db_url)) {
+    // @TODO: Add some error logging here?
+    return;
+  }
+
+  // Load the database URL, or all items from the settings array into global
+  // $databases which will be automatically parsed by DBTNG in
+  // Databse::ParseConnectionInfo.
+  $databases = array();
+  if (is_array($db_url)) {
+    foreach ($db_url as $key => $connect_url) {
+      $databases[$key]['default'] = dbtng_get_db_settings($connect_url);
+    }
+  }
+  else {
+    $databases['default']['default'] = dbtng_get_db_settings($db_url);
+  }
+}
+
+/**
+ * Helper function to parse a Drupal 6 style DB connection URL.
+ */
+function dbtng_get_db_settings($connect_url) {
+  $info = parse_url($connect_url);
+
+  $info['scheme'] = ($info['scheme'] == 'mysqli') ? 'mysql' : $info['scheme'];
+  $info['path'] = str_replace('/', '', $info['path']);
+  if (empty($info['port'])) {
+    // provide a default port if it's not explicit on $connect_url
+    $info['port'] = getservbyname($info['scheme'], 'tcp');
+  }
+
+  $settings = array(
+    'driver' => $info['scheme'],
+    'database' => $info['path'],
+    'username' => $info['user'],
+    'password' => $info['pass'],
+    'host' => $info['host'],
+    'port' => $info['port']
+  );
+  return $settings;
+}
+
+/**
+ * The following utility functions are simply convenience wrappers.
+ * They should never, ever have any database-specific code in them.
+ */
+
