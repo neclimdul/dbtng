@@ -334,7 +334,13 @@ function db_autoload($class) {
   $checked[$class] = TRUE;
 
   if (empty($base_path)) {
-    $base_path = dirname(realpath(__FILE__));
+    $base_path = drupal_get_path('module', 'dbtng');
+  }
+
+  // Add a simple check for database.inc
+  if (strpos($class, 'Database') === 0) {
+    require_once $base_path . '/database/database.inc';
+    return;
   }
 
   // If there is an underscore in the class name, we know it's a
@@ -358,7 +364,7 @@ function db_autoload($class) {
 
     foreach ($driver_files as $file => $classes) {
       if (in_array($base, $classes)) {
-        require_once "{$base_path}/{$driver}/{$file}";
+        require_once "{$base_path}/database/{$driver}/{$file}";
         return;
       }
     }
@@ -366,7 +372,20 @@ function db_autoload($class) {
   else {
     foreach ($files as $file => $classes) {
       if (in_array($class, $classes)) {
-        require_once $base_path . '/' . $file;
+        require_once $base_path . '/database/' . $file;
+        return;
+      }
+    }
+  }
+  // Additional handling for extra Includes
+  if (in_array($class, array('TableSort', 'PagerDefault'))) {
+    $include_files = array(
+      'pager.inc' => array('PagerDefault'),
+      'tablesort.inc' => array('TableSort'),
+    );
+    foreach ($include_files as $file => $classes) {
+      if (in_array($class, $classes)) {
+        require_once $base_path . '/includes/' . $file;
         return;
       }
     }
