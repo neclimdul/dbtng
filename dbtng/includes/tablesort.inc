@@ -1,5 +1,5 @@
 <?php
-// $Id: tablesort.inc,v 1.58 2009/12/05 20:17:02 dries Exp $
+// $Id: tablesort.inc,v 1.1.2.2 2010/07/21 05:43:57 mikeyp Exp $
 
 /**
  * @file

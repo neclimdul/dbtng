@@ -1,5 +1,5 @@
 <?php
-// $Id: schema.inc,v 1.17 2010/04/28 20:25:21 dries Exp $
+// $Id: schema.inc,v 1.1.2.6 2010/07/21 05:43:57 mikeyp Exp $
 
 /**
  * @file

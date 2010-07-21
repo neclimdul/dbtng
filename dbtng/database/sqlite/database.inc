@@ -1,5 +1,5 @@
 <?php
-// $Id: database.inc,v 1.33 2010/07/04 02:26:10 webchick Exp $
+// $Id: database.inc,v 1.1.2.3 2010/07/21 05:43:57 mikeyp Exp $
 
 /**
  * @file

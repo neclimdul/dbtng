@@ -1,5 +1,5 @@
 <?php
-// $Id: pager.inc,v 1.80 2010/05/06 05:59:30 webchick Exp $
+// $Id: pager.inc,v 1.1.2.2 2010/07/21 05:43:57 mikeyp Exp $
 
 /**
  * @file
