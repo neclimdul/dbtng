@@ -619,3 +619,7 @@ class DatabaseSchema_sqlite extends DatabaseSchema {
     return $result->fetchAllKeyed(0, 0);
   }
 }
+
+/**
+ * @} End of "ingroup schemaapi".
+ */

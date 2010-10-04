@@ -2,7 +2,7 @@
 // $Id: query.inc,v 1.22 2010/09/01 01:43:50 webchick Exp $
 
 /**
- * @ingroup database
+ * @ingroup dbtng
  * @{
  */
 
@@ -209,6 +209,9 @@ class UpdateQuery_pgsql extends UpdateQuery {
   }
 }
 
+/**
+ * @} End of "ingroup dbtng".
+ */
 class SelectQuery_pgsql extends SelectQuery {
 
   public function orderRandom() {

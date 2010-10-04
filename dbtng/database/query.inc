@@ -2,7 +2,7 @@
 // $Id: query.inc,v 1.55 2010/08/05 08:26:35 webchick Exp $
 
 /**
- * @ingroup database
+ * @ingroup dbtng
  * @{
  */
 
@@ -1421,5 +1421,5 @@ class DatabaseCondition implements QueryConditionInterface, Countable {
 }
 
 /**
- * @} End of "ingroup database".
+ * @} End of "ingroup dbtng".
  */

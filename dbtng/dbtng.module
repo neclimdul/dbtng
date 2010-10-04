@@ -62,6 +62,12 @@ function dbtng_get_db_settings($connect_url) {
 }
 
 /**
+ * @defgroup dbtng PDO Database abstraction layer
+ * @{
+ */
+
+
+/**
  * The following utility functions are simply convenience wrappers.
  * They should never, ever have any database-specific code in them.
  */
@@ -696,3 +702,6 @@ function dbtng_escape_field($field) {
   return Database::getConnection()->escapeField($field);
 }
 
+/**
+ * @} End of "defgroup dbtng".
+ */
