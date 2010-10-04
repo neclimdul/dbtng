@@ -1,8 +1,8 @@
 <?php
-// $Id: query.inc,v 1.1.2.3 2010/07/21 05:43:57 mikeyp Exp $
+// $Id: query.inc,v 1.18 2010/06/26 01:40:05 dries Exp $
 
 /**
- * @ingroup dbtng
+ * @ingroup database
  * @{
  */
 
@@ -104,5 +104,5 @@ class TruncateQuery_mysql extends TruncateQuery {
 }
 
 /**
- * @} End of "ingroup dbtng".
+ * @} End of "ingroup database".
  */

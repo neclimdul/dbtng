@@ -65,7 +65,6 @@ $copy = array(
     'db_or',
     'db_next_id',
     'db_like',
-    'db_autoload',
   ),
 );
 
@@ -87,6 +86,7 @@ $remove = array(
     'db_affected_rows',
     'db_ignore_slave',
     'update_sql',
+    'db_autoload',
   ),
   'source' => 'dbtng/database/database.inc',
 );

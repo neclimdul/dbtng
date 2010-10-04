@@ -1,5 +1,5 @@
 <?php
-// $Id: database.inc,v 1.1.2.7 2010/07/21 05:43:57 mikeyp Exp $
+// $Id: database.inc,v 1.135 2010/09/11 21:14:31 webchick Exp $
 
 /**
  * @file
@@ -10,12 +10,9 @@
  * file only, as they cannot auto-load the way classes can.
  */
 
- /**
-  * @ingroup dbtng
-  * @{
-  */
-
 /**
+ * @defgroup database Database abstraction layer
+ * @{
  * Allow the use of different database servers using the same code base.
  *
  * Drupal provides a database abstraction layer to provide developers with
@@ -29,7 +26,7 @@
  * The system is built atop PHP's PDO (PHP Data Objects) database API and
  * inherits much of its syntax and semantics.
  *
- * Most Drupal database SELECT queries are performed by a call to dbtng_query() or
+ * Most Drupal database SELECT queries are performed by a call to db_query() or
  * db_query_range(). Module authors should also consider using the PagerDefault
  * Extender for queries that return results that need to be presented on
  * multiple pages, and the Tablesort Extender for generating appropriate queries
@@ -50,7 +47,7 @@
  * @endcode
  * Curly braces are used around "node" to provide table prefixing via
  * DatabaseConnection::prefixTables(). The explicit use of a user ID is pulled
- * out into an argument passed to dbtng_query() so that SQL injection attacks
+ * out into an argument passed to db_query() so that SQL injection attacks
  * from user input can be caught and nullified. The LIMIT syntax varies between
  * database servers, so that is abstracted into db_query_range() arguments.
  * Finally, note the PDO-based ability to foreach() over the result set.
@@ -540,6 +537,8 @@ abstract class DatabaseConnection extends PDO {
    *   query builder and should not be set by a user. If there is an error,
    *   this method will return NULL and may throw an exception if
    *   $options['throw_exception'] is TRUE.
+   *
+   * @throws PDOException
    */
   public function query($query, array $args = array(), $options = array()) {
 
@@ -649,7 +648,7 @@ abstract class DatabaseConnection extends PDO {
    * @return string
    *   The name of the class that should be used for this driver.
    */
-  protected function getDriverClass($class) {
+  public function getDriverClass($class) {
     if (empty($this->driverClasses[$class])) {
       $this->driverClasses[$class] = $class . '_' . $this->driver();
       if (!class_exists($this->driverClasses[$class])) {
@@ -811,6 +810,20 @@ abstract class DatabaseConnection extends PDO {
   }
 
   /**
+   * Escapes an alias name string.
+   *
+   * Force all alias names to be strictly alphanumeric-plus-underscore. In
+   * contrast to DatabaseConnection::escapeField() /
+   * DatabaseConnection::escapeTable(), this doesn't allow the period (".")
+   *
+   * @return
+   *   The sanitized field name string.
+   */
+  public function escapeAlias($field) {
+    return preg_replace('/[^A-Za-z0-9_]+/', '', $field);
+  }
+
+  /**
    * Escapes characters that work as wildcard characters in a LIKE pattern.
    *
    * The wildcard characters "%" and "_" as well as backslash are prefixed with
@@ -878,9 +891,14 @@ abstract class DatabaseConnection extends PDO {
    *   The name of the savepoint. The default, 'drupal_transaction', will roll
    *   the entire transaction back.
    *
+   * @throws DatabaseTransactionNoActiveException
+   *
    * @see DatabaseTransaction::rollback()
    */
   public function rollback($savepoint_name = 'drupal_transaction') {
+    if (!$this->supportsTransactions()) {
+      return;
+    }
     if (!$this->inTransaction()) {
       throw new DatabaseTransactionNoActiveException();
     }
@@ -904,15 +922,15 @@ abstract class DatabaseConnection extends PDO {
         return;
       }
     }
-    if ($this->supportsTransactions()) {
-      parent::rollBack();
-    }
+    parent::rollBack();
   }
 
   /**
    * Increases the depth of transaction nesting.
    *
    * If no transaction is already active, we begin a new transaction.
+   *
+   * @throws DatabaseTransactionNameNonUniqueException
    *
    * @see DatabaseTransaction
    */
@@ -943,6 +961,9 @@ abstract class DatabaseConnection extends PDO {
    *
    * @param $name
    *   The name of the savepoint
+   *
+   * @throws DatabaseTransactionNoActiveException
+   * @throws DatabaseTransactionCommitFailedException
    *
    * @see DatabaseTransaction
    */
@@ -1042,6 +1063,11 @@ abstract class DatabaseConnection extends PDO {
   abstract public function driver();
 
   /**
+   * Returns the version of the database server.
+   */
+  abstract public function version();
+
+  /**
    * Determines if this driver supports transactions.
    *
    * @return
@@ -1095,6 +1121,8 @@ abstract class DatabaseConnection extends PDO {
    * by destroying the transaction object or allowing it to go out of scope.
    * A direct commit bypasses all of the safety checks we've built on top of
    * PDO's transaction routines.
+   *
+   * @throws DatabaseTransactionExplicitCommitNotAllowedException
    *
    * @see DatabaseTransaction
    */
@@ -1343,7 +1371,7 @@ abstract class Database {
             'default' => '',
           );
         }
-        else if (!is_array($database_info[$index][$target]['prefix'])) {
+        elseif (!is_array($database_info[$index][$target]['prefix'])) {
           // Transform the flat form into an array form.
           $database_info[$index][$target]['prefix'] = array(
             'default' => $database_info[$index][$target]['prefix'],
@@ -1470,6 +1498,9 @@ abstract class Database {
    *   "default".
    * @param $target
    *   The database target to open.
+   *
+   * @throws DatabaseConnectionNotDefinedException
+   * @throws DatabaseDriverNotSpecifiedException
    */
   final protected static function openConnection($key, $target) {
     if (empty(self::$databaseInfo)) {
@@ -1489,7 +1520,7 @@ abstract class Database {
     // We cannot rely on the registry yet, because the registry requires an
     // open database connection.
     $driver_class = 'DatabaseConnection_' . $driver;
-    require_once drupal_get_path('module', 'dbtng') . '/database/' . $driver . '/database.inc';
+    require_once DRUPAL_ROOT . '/includes/database/' . $driver . '/database.inc';
     $new_connection = new $driver_class(self::$databaseInfo[$key][$target]);
     $new_connection->setTarget($target);
 
@@ -2069,6 +2100,22 @@ class DatabaseStatementEmpty implements Iterator, DatabaseStatementInterface {
 }
 
 /**
- * @} End of "ingroup dbtng".
+ * The following utility functions are simply convenience wrappers.
+ *
+ * They should never, ever have any database-specific code in them.
+ */
+
+/**
+ * @} End of "defgroup database".
+ */
+
+
+/**
+ * @ingroup schemaapi
+ * @{
+ */
+
+/**
+ * @} End of "ingroup schemaapi".
  */
 

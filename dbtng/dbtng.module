@@ -1,5 +1,5 @@
 <?php
-// $Id: dbtng.module,v 1.1.2.10 2010/07/21 05:43:57 mikeyp Exp $
+// $Id: dbtng.module,v 1.2 2009/06/05 03:42:56 mikeyp Exp $
 
 /**
  * @file
@@ -52,20 +52,14 @@ function dbtng_get_db_settings($connect_url) {
 
   $settings = array(
     'driver' => $info['scheme'],
-    'database' => $info['path'],
-    'username' => $info['user'],
-    'password' => $info['pass'],
-    'host' => $info['host'],
+    'database' => urldecode($info['path']),
+    'username' => urldecode($info['user']),
+    'password' => @urldecode($info['pass']),
+    'host' => urldecode($info['host']),
     'port' => $info['port']
   );
   return $settings;
 }
-
-/**
- * @defgroup dbtng PDO Database abstraction layer
- * @{
- */
-
 
 /**
  * The following utility functions are simply convenience wrappers.
@@ -303,93 +297,6 @@ function db_next_id($existing_id = 0) {
  */
 function db_like($string) {
   return Database::getConnection()->escapeLike($string);
-}
-
-/**
- * Autoload callback for the database system.
- */
-function db_autoload($class) {
-  static $base_path = '';
-  static $checked = array();
-
-  static $files = array(
-    'query.inc' => array(
-      'QueryPlaceholderInterface',
-      'QueryConditionInterface', 'DatabaseCondition',
-      'Query', 'DeleteQuery', 'InsertQuery', 'UpdateQuery', 'MergeQuery', 'TruncateQuery',
-      'QueryAlterableInterface',
-    ),
-    'select.inc' => array('QueryAlterableInterface', 'SelectQueryInterface', 'SelectQuery', 'SelectQueryExtender'),
-    'database.inc' => array('DatabaseConnection'),
-    'log.inc' => array('DatabaseLog'),
-    'prefetch.inc' => array('DatabaseStatementPrefetch'),
-    'schema.inc' => array('DatabaseSchema'),
-  );
-
-  // If a class doesn't exist, it may get checked a second time
-  // by class_exists().  If so, just bail out now.
-  if (isset($checked[$class])) {
-    return;
-  }
-  $checked[$class] = TRUE;
-
-  if (empty($base_path)) {
-    $base_path = drupal_get_path('module', 'dbtng');
-  }
-
-  // Add a simple check for database.inc
-  if (strpos($class, 'Database') === 0) {
-    require_once $base_path . '/database/database.inc';
-    return;
-  }
-
-  // If there is an underscore in the class name, we know it's a
-  // driver-specific file so check for those.  If not, it's a generic.
-  // Note that we use require_once here instead of require because of a
-  // quirk in class_exists().  By default, class_exists() will try to
-  // autoload a class if it's not found.  However, we cannot tell
-  // at this point whether or not the class is going to exist, only
-  // the file that it would be in if it does exist.  That means we may
-  // try to include a file that was already included by another
-  // autoload call, which would break.  Using require_once() neatly
-  // avoids that issue.
-  if (strpos($class, '_') !== FALSE) {
-    list($base, $driver) = explode('_', $class);
-
-    // Drivers have an extra file, and may put their SelectQuery implementation
-    // in the main query file since it's so small.
-    $driver_files = $files;
-    $driver_files['query.inc'][] = 'SelectQuery';
-    $driver_files['install.inc'] = array('DatabaseTasks');
-
-    foreach ($driver_files as $file => $classes) {
-      if (in_array($base, $classes)) {
-        require_once "{$base_path}/database/{$driver}/{$file}";
-        return;
-      }
-    }
-  }
-  else {
-    foreach ($files as $file => $classes) {
-      if (in_array($class, $classes)) {
-        require_once $base_path . '/database/' . $file;
-        return;
-      }
-    }
-  }
-  // Additional handling for extra Includes
-  if (in_array($class, array('TableSort', 'PagerDefault'))) {
-    $include_files = array(
-      'pager.inc' => array('PagerDefault'),
-      'tablesort.inc' => array('TableSort'),
-    );
-    foreach ($include_files as $file => $classes) {
-      if (in_array($class, $classes)) {
-        require_once $base_path . '/includes/' . $file;
-        return;
-      }
-    }
-  }
 }
 
 /**
@@ -789,53 +696,3 @@ function dbtng_escape_field($field) {
   return Database::getConnection()->escapeField($field);
 }
 
-/**
- * Backported from Drupal 7. 
- *
- * Process a URL query parameter array to remove unwanted elements.
- *
- * @param $query
- *   (optional) An array to be processed. Defaults to $_GET.
- * @param $exclude
- *   (optional) A list of $query array keys to remove. Use "parent[child]" to
- *   exclude nested items. Defaults to array('q').
- * @param $parent
- *   Internal use only. Used to build the $query array key for nested items.
- *
- * @return
- *   An array containing query parameters, which can be used for url().
- */
-function drupal_get_query_parameters(array $query = NULL, array $exclude = array('q'), $parent = '') {
-  // Set defaults, if none given.
-  if (!isset($query)) {
-    $query = $_GET;
-  }
-  // If $exclude is empty, there is nothing to filter.
-  if (empty($exclude)) {
-    return $query;
-  }
-  elseif (!$parent) {
-    $exclude = array_flip($exclude);
-  }
-
-  $params = array();
-  foreach ($query as $key => $value) {
-    $string_key = ($parent ? $parent . '[' . $key . ']' : $key);
-    if (isset($exclude[$string_key])) {
-      continue;
-    }
-
-    if (is_array($value)) {
-      $params[$key] = drupal_get_query_parameters($value, $exclude, $string_key);
-    }
-    else {
-      $params[$key] = $value;
-    }
-  }
-
-  return $params;
-}
-
-/**
- * @} End of "defgroup dbtng".
- */

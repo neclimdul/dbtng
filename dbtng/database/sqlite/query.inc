@@ -1,5 +1,5 @@
 <?php
-// $Id: query.inc,v 1.1.2.4 2010/07/21 05:43:57 mikeyp Exp $
+// $Id: query.inc,v 1.11 2010/07/03 20:45:45 webchick Exp $
 
 /**
  * @file
@@ -7,7 +7,7 @@
  */
 
 /**
- * @ingroup dbtng
+ * @ingroup database
  * @{
  */
 
@@ -216,5 +216,5 @@ class TruncateQuery_sqlite extends TruncateQuery {
 }
 
 /**
- * @} End of "ingroup dbtng".
+ * @} End of "ingroup database".
  */

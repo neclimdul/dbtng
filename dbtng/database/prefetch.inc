@@ -1,5 +1,5 @@
 <?php
-// $Id: prefetch.inc,v 1.1.2.3 2010/07/21 05:43:57 mikeyp Exp $
+// $Id: prefetch.inc,v 1.10 2010/04/30 13:47:46 dries Exp $
 
 /**
  * @file
@@ -10,7 +10,7 @@
  */
 
 /**
- * @ingroup dbtng
+ * @ingroup database
  * @{
  */
 
@@ -499,6 +499,6 @@ class DatabaseStatementPrefetch implements Iterator, DatabaseStatementInterface 
 }
 
 /**
- * @} End of "ingroup dbtng".
+ * @} End of "ingroup database".
  */
 

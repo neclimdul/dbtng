@@ -52,10 +52,10 @@ function dbtng_get_db_settings($connect_url) {
 
   $settings = array(
     'driver' => $info['scheme'],
-    'database' => $info['path'],
-    'username' => $info['user'],
-    'password' => $info['pass'],
-    'host' => $info['host'],
+    'database' => urldecode($info['path']),
+    'username' => urldecode($info['user']),
+    'password' => @urldecode($info['pass']),
+    'host' => urldecode($info['host']),
     'port' => $info['port']
   );
   return $settings;

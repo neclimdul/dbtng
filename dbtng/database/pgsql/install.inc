@@ -1,5 +1,5 @@
 <?php
-// $Id: install.inc,v 1.1.2.3 2010/07/21 05:43:57 mikeyp Exp $
+// $Id: install.inc,v 1.10 2010/08/16 21:01:23 dries Exp $
 
 /**
  * @file
@@ -36,7 +36,7 @@ class DatabaseTasks_pgsql extends DatabaseTasks {
    */
   protected function checkEncoding() {
     try {
-      if (dbtng_query('SHOW server_encoding')->fetchField() == 'UTF8') {
+      if (db_query('SHOW server_encoding')->fetchField() == 'UTF8') {
         $this->pass(st('Database is encoded in UTF-8'));
       }
       else {
@@ -57,29 +57,18 @@ class DatabaseTasks_pgsql extends DatabaseTasks {
   /**
    * Check PHP version.
    *
-   * There is a bug in PHP versions < 5.2.11 and < 5.3.1 that prevents
-   * PostgreSQL from inserting integer values into numeric columns that exceed
-   * the PHP_INT_MAX value (value varies dependant on 32 or 64 bit CPU).
+   * There are two bugs in PDO_pgsql affecting Drupal:
+   *
+   * - in versions < 5.2.7, PDO_pgsql refuses to insert an empty string into
+   *   a NOT NULL BLOB column. See: http://bugs.php.net/bug.php?id=46249
+   * - in versions < 5.2.11 and < 5.3.1 that prevents inserting integer values
+   *   into numeric columns that exceed the PHP_INT_MAX value.
+   *   See: http://bugs.php.net/bug.php?id=48924
    */
   function checkPHPVersion() {
-    try {
-      $txn = db_transaction();
-      dbtng_query("CREATE TABLE test_php_version ( test_int INT NOT NULL )");
-      // See http://bugs.php.net/bug.php?id=48924 as to why this query may 
-      // fail. The error will throw an Exception so there is no need to test to
-      // see if the row inserted or not.
-      dbtng_query("INSERT INTO test_php_version ( test_int ) VALUES (:big_int)", array(':big_int' => PHP_INT_MAX + 1));
-      dbtng_query("DROP TABLE test_php_version"); 
-      $this->pass(st('PHP is at the correct version to run on PostgreSQL.'));
-    }
-    catch (Exception $e) {
-      // Failing is not fatal but the user should still be warned of the
-      // limitations of running PostgreSQL on the current version of PHP.
-      $text  = 'The version of PHP you are using has known issues with PostgreSQL. You can see more at ';
-      $text .= l('http://drupal.org/node/515310', 'http://drupal.org/node/515310') . '. ';
-      $text .= 'We suggest you upgrade PHP to 5.2.11, 5.3.1 or greater. Failing to do so may result in serious data corruption later.';
-      drupal_set_message(st($text), 'warning');
-    }
+    if (!version_compare(PHP_VERSION, '5.2.11', '>=') || (version_compare(PHP_VERSION, '5.3.0', '>=') && !version_compare(PHP_VERSION, '5.3.1', '>='))) {
+      $this->fail(st('The version of PHP you are using has known issues with PostgreSQL. You need to upgrade PHP to 5.2.11, 5.3.1 or greater.'));
+    };
   }
 
   /**
@@ -93,23 +82,23 @@ class DatabaseTasks_pgsql extends DatabaseTasks {
 
     try {
       // Create functions.
-      dbtng_query('CREATE OR REPLACE FUNCTION "greatest"(numeric, numeric) RETURNS numeric AS
+      db_query('CREATE OR REPLACE FUNCTION "greatest"(numeric, numeric) RETURNS numeric AS
         \'SELECT CASE WHEN (($1 > $2) OR ($2 IS NULL)) THEN $1 ELSE $2 END;\'
         LANGUAGE \'sql\''
       );
-      dbtng_query('CREATE OR REPLACE FUNCTION "greatest"(numeric, numeric, numeric) RETURNS numeric AS
+      db_query('CREATE OR REPLACE FUNCTION "greatest"(numeric, numeric, numeric) RETURNS numeric AS
         \'SELECT greatest($1, greatest($2, $3));\'
         LANGUAGE \'sql\''
       );
       // Don't use {} around pg_proc table.
-      if (!dbtng_query("SELECT COUNT(*) FROM pg_proc WHERE proname = 'rand'")->fetchField()) {
-        dbtng_query('CREATE OR REPLACE FUNCTION "rand"() RETURNS float AS
+      if (!db_query("SELECT COUNT(*) FROM pg_proc WHERE proname = 'rand'")->fetchField()) {
+        db_query('CREATE OR REPLACE FUNCTION "rand"() RETURNS float AS
           \'SELECT random();\'
           LANGUAGE \'sql\''
         );
       }
 
-      dbtng_query('CREATE OR REPLACE FUNCTION "substring_index"(text, text, integer) RETURNS text AS
+      db_query('CREATE OR REPLACE FUNCTION "substring_index"(text, text, integer) RETURNS text AS
         \'SELECT array_to_string((string_to_array($1, $2)) [1:$3], $2);\'
         LANGUAGE \'sql\''
       );
@@ -119,19 +108,19 @@ class DatabaseTasks_pgsql extends DatabaseTasks {
       // they do support CONCAT(item1, item2) which we can replicate in
       // PostgreSQL. PostgreSQL requires the function to be defined for each
       // different argument variation the function can handle.
-      dbtng_query('CREATE OR REPLACE FUNCTION "concat"(anynonarray, anynonarray) RETURNS text AS
+      db_query('CREATE OR REPLACE FUNCTION "concat"(anynonarray, anynonarray) RETURNS text AS
         \'SELECT CAST($1 AS text) || CAST($2 AS text);\'
         LANGUAGE \'sql\'
       ');
-      dbtng_query('CREATE OR REPLACE FUNCTION "concat"(text, anynonarray) RETURNS text AS
+      db_query('CREATE OR REPLACE FUNCTION "concat"(text, anynonarray) RETURNS text AS
         \'SELECT $1 || CAST($2 AS text);\'
         LANGUAGE \'sql\'
       ');
-      dbtng_query('CREATE OR REPLACE FUNCTION "concat"(anynonarray, text) RETURNS text AS
+      db_query('CREATE OR REPLACE FUNCTION "concat"(anynonarray, text) RETURNS text AS
         \'SELECT CAST($1 AS text) || $2;\'
         LANGUAGE \'sql\'
       ');
-      dbtng_query('CREATE OR REPLACE FUNCTION "concat"(text, text) RETURNS text AS
+      db_query('CREATE OR REPLACE FUNCTION "concat"(text, text) RETURNS text AS
         \'SELECT $1 || $2;\'
         LANGUAGE \'sql\'
       ');

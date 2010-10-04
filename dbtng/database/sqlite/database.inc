@@ -1,5 +1,5 @@
 <?php
-// $Id: database.inc,v 1.1.2.3 2010/07/21 05:43:57 mikeyp Exp $
+// $Id: database.inc,v 1.37 2010/08/27 15:45:46 webchick Exp $
 
 /**
  * @file
@@ -7,11 +7,11 @@
  */
 
 /**
- * @ingroup dbtng
+ * @ingroup database
  * @{
  */
 
-include_once drupal_get_path('module', 'dbtng') . '/database/prefetch.inc';
+include_once DRUPAL_ROOT . '/includes/database/prefetch.inc';
 
 /**
  * Specific SQLite implementation of DatabaseConnection.
@@ -47,6 +47,8 @@ class DatabaseConnection_sqlite extends DatabaseConnection {
     parent::__construct('sqlite:' . $connection_options['database'], '', '', array(
       // Force column names to lower case.
       PDO::ATTR_CASE => PDO::CASE_LOWER,
+      // Convert numeric values to strings when fetching.
+      PDO::ATTR_STRINGIFY_FETCHES => TRUE,
     ));
 
     $this->exec('PRAGMA encoding="UTF-8"');
@@ -111,6 +113,10 @@ class DatabaseConnection_sqlite extends DatabaseConnection {
    * SQLite compatibility implementation for the SUBSTRING_INDEX() SQL function.
    */
   public function sqlFunctionSubstringIndex($string, $delimiter, $count) {
+    // If string is empty, simply return an empty string.
+    if (empty($string)) {
+      return '';
+    }
     $end = 0;
     for ($i = 0; $i < $count; $i++) {
       $end = strpos($string, $delimiter, $end + 1);
@@ -163,13 +169,21 @@ class DatabaseConnection_sqlite extends DatabaseConnection {
   }
 
   public function queryTemporary($query, array $args = array(), array $options = array()) {
+    // Generate a new temporary table name and protect it from prefixing.
+    // SQLite requires that temporary tables to be non-qualified.
     $tablename = $this->generateTemporaryTableName();
-    $this->query(preg_replace('/^SELECT/i', 'CREATE TEMPORARY TABLE {' . $tablename . '} AS SELECT', $query), $args, $options);
+    $this->prefixes[$tablename] = '';
+
+    $this->query(preg_replace('/^SELECT/i', 'CREATE TEMPORARY TABLE ' . $tablename . ' AS SELECT', $query), $args, $options);
     return $tablename;
   }
 
   public function driver() {
     return 'sqlite';
+  }
+
+  public function version() {
+    return $this->query('SELECT sqlite_version()')->fetchField();
   }
 
   public function databaseType() {
@@ -207,7 +221,7 @@ class DatabaseConnection_sqlite extends DatabaseConnection {
     }
     // The transaction gets committed when the transaction object gets destroyed
     // because it gets out of scope.
-    return (int) $this->query('SELECT value FROM {sequences}')->fetchField();
+    return $this->query('SELECT value FROM {sequences}')->fetchField();
   }
 
   public function rollback($savepoint_name = 'drupal_transaction') {
@@ -429,5 +443,5 @@ class DatabaseStatement_sqlite extends DatabaseStatementPrefetch implements Iter
 }
 
 /**
- * @} End of "ingroup dbtng".
+ * @} End of "ingroup database".
  */

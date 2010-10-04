@@ -1,5 +1,5 @@
 <?php
-// $Id: database.inc,v 1.1.2.4 2010/07/21 05:43:57 mikeyp Exp $
+// $Id: database.inc,v 1.41 2010/08/11 02:17:39 dries Exp $
 
 /**
  * @file
@@ -7,7 +7,7 @@
  */
 
 /**
- * @ingroup dbtng
+ * @ingroup database
  * @{
  */
 
@@ -33,7 +33,7 @@ class DatabaseConnection_pgsql extends DatabaseConnection {
 
     // PostgreSQL in trust mode doesn't require a password to be supplied.
     if (empty($connection_options['password'])) {
-      $connection_options['password'] = null;
+      $connection_options['password'] = NULL;
     }
 
     $this->connectionOptions = $connection_options;
@@ -126,6 +126,10 @@ class DatabaseConnection_pgsql extends DatabaseConnection {
     return 'pgsql';
   }
 
+  public function version() {
+    return $this->query('SHOW SERVER_VERSION')->fetchField();
+  }
+
   public function databaseType() {
     return 'pgsql';
   }
@@ -187,5 +191,5 @@ class DatabaseConnection_pgsql extends DatabaseConnection {
 }
 
 /**
- * @} End of "ingroup dbtng".
+ * @} End of "ingroup database".
  */
