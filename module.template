@@ -8,10 +8,6 @@
  * @link http://shomeya.com
  */
 
-function dbtng_boot() {
-  spl_autoload_register('db_autoload');
-}
-
 /**
  * Implementation of hook_init().
  */
