@@ -26,3 +26,5 @@ files[] = database/sqlite/database.inc
 files[] = database/sqlite/install.inc
 files[] = database/sqlite/query.inc
 files[] = database/sqlite/schema.inc
+files[] = includes/pager.inc
+files[] = includes/tablesort.inc
