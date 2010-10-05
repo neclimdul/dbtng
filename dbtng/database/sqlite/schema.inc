@@ -613,7 +613,7 @@ class DatabaseSchema_sqlite extends DatabaseSchema {
 
   public function findTables($table_expression) {
     // Don't use {} around sqlite_master table.
-    $result = db_query("SELECT name FROM sqlite_master WHERE name LIKE :table_name", array(
+    $result = dbtng_query("SELECT name FROM sqlite_master WHERE name LIKE :table_name", array(
       ':table_name' => $table_expression,
     ));
     return $result->fetchAllKeyed(0, 0);

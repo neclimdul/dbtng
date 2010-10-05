@@ -29,7 +29,7 @@
  * The system is built atop PHP's PDO (PHP Data Objects) database API and
  * inherits much of its syntax and semantics.
  *
- * Most Drupal database SELECT queries are performed by a call to db_query() or
+ * Most Drupal database SELECT queries are performed by a call to dbtng_query() or
  * db_query_range(). Module authors should also consider using the PagerDefault
  * Extender for queries that return results that need to be presented on
  * multiple pages, and the Tablesort Extender for generating appropriate queries
@@ -50,7 +50,7 @@
  * @endcode
  * Curly braces are used around "node" to provide table prefixing via
  * DatabaseConnection::prefixTables(). The explicit use of a user ID is pulled
- * out into an argument passed to db_query() so that SQL injection attacks
+ * out into an argument passed to dbtng_query() so that SQL injection attacks
  * from user input can be caught and nullified. The LIMIT syntax varies between
  * database servers, so that is abstracted into db_query_range() arguments.
  * Finally, note the PDO-based ability to foreach() over the result set.
