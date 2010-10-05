@@ -1,5 +1,28 @@
 ; $Id: dbtng.info,v 1.1.2.2 2010/07/21 05:43:57 mikeyp Exp $
 name = DBTNG
 description = Drupal 7 database 
+
+; Compatability and dependencies
 core = 6.x
 php = 5.2
+dependencies[] = autoload
+
+; Autoload information
+files[] = database/database.inc
+files[] = database/log.inc
+files[] = database/mysql/database.inc
+files[] = database/mysql/install.inc
+files[] = database/mysql/query.inc
+files[] = database/mysql/schema.inc
+files[] = database/pgsql/database.inc
+files[] = database/pgsql/install.inc
+files[] = database/pgsql/query.inc
+files[] = database/pgsql/schema.inc
+files[] = database/prefetch.inc
+files[] = database/query.inc
+files[] = database/schema.inc
+files[] = database/select.inc
+files[] = database/sqlite/database.inc
+files[] = database/sqlite/install.inc
+files[] = database/sqlite/query.inc
+files[] = database/sqlite/schema.inc
