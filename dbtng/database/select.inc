@@ -1,5 +1,5 @@
 <?php
-// $Id: select.inc,v 1.48 2010/09/03 19:06:55 dries Exp $
+// $Id: select.inc,v 1.1.2.6 2010/10/05 00:49:56 mikeyp Exp $
 
 /**
  * @ingroup dbtng

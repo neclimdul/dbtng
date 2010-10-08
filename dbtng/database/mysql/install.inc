@@ -1,5 +1,5 @@
 <?php
-// $Id: install.inc,v 1.4 2010/07/30 01:59:14 dries Exp $
+// $Id: install.inc,v 1.1.2.3 2010/10/05 00:49:56 mikeyp Exp $
 
 /**
  * @file

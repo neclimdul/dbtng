@@ -1,5 +1,5 @@
 <?php
-// $Id: query.inc,v 1.18 2010/06/26 01:40:05 dries Exp $
+// $Id: query.inc,v 1.1.2.4 2010/10/05 00:49:56 mikeyp Exp $
 
 /**
  * @ingroup dbtng
