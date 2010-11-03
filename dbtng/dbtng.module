@@ -53,6 +53,7 @@ function dbtng_menu() {
  * Helper function to parse a Drupal 6 style DB connection URL.
  */
 function dbtng_get_db_settings($connect_url) {
+  global $db_prefix;
   $info = parse_url($connect_url);
 
   $info['scheme'] = ($info['scheme'] == 'mysqli') ? 'mysql' : $info['scheme'];
@@ -68,7 +69,8 @@ function dbtng_get_db_settings($connect_url) {
     'username' => urldecode($info['user']),
     'password' => @urldecode($info['pass']),
     'host' => urldecode($info['host']),
-    'port' => $info['port']
+    'port' => $info['port'],
+    'prefix' => @$db_prefix,
   );
   return $settings;
 }
