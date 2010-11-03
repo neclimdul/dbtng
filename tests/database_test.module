@@ -1,0 +1,17 @@
+<?php
+
+function database_test_init() {
+  if ($_GET['q'] == 'dbtng_init_test') {
+    $records = array();
+    $result = db_select('test', 't')
+      ->fields('t', array('name'))
+      ->condition('t.age', 25)
+      ->execute();
+    foreach ($result as $record) {
+      $records[] = $record;
+    }
+
+    echo 'DBTNG count: ' . count($records);
+    exit;
+  }
+}

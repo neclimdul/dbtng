@@ -1,0 +1,54 @@
+<?php
+// $Id$
+
+class DatabaseFetchTestCase extends DrupalWebTestCase {
+  function setUp() {
+    parent::setUp('autoload', 'dbtng', 'database_test');
+  }
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Fetch tests',
+      'description' => 'Test the Database system\'s various fetch capabilities.',
+      'group' => 'DBTNG',
+    );
+  }
+
+  function testSimpleQuery() {
+
+    // Use normal query to insert a record.
+    $item = array(
+      'name' => 'John',
+      'age' => 25,
+      'job' => 'Singer',
+    );
+    drupal_write_record('test', $item);
+
+    // Test that init hooks can use dbtng functions.
+    $test_string = $this->drupalGet('dbtng_init_test');
+    $this->assertEqual($test_string, 'DBTNG count: 1', 'callback success');
+
+    // Try reading it using normal db api.
+    $records = array();
+    $result = db_query('SELECT name FROM {test} WHERE age = %d', 25);
+    while ($record = db_fetch_object($result)) {
+      $records[] = $record;
+      $this->assertTrue(is_object($record), t('Record is an object.'));
+      $this->assertIdentical($record->name, 'John', t('25 year old is John.'));
+    }
+    $this->assertIdentical(count($records), 1, t('There is only one record.'));
+
+    // Now try the same select with dbtng.
+    $records = array();
+    $result = db_select('test', 't')
+      ->fields('t', array('name'))
+      ->condition('t.age', 25)
+      ->execute();
+    foreach ($result as $record) {
+      $records[] = $record;
+      $this->assertTrue(is_object($record), t('Record is an object.'));
+      $this->assertIdentical($record->name, 'John', t('25 year old is John.'));
+    }
+    $this->assertIdentical(count($records), 1, t('There is only one record.'));
+  }
+}
