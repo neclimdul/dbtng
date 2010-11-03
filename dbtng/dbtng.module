@@ -3,7 +3,7 @@
 
 /**
  * @file
- * Drupal 7 database 
+ * Drupal 7 database
  * @author Michael Prasuhn <mike@shomeya.com>
  * @link http://shomeya.com
  */
@@ -30,6 +30,22 @@ function dbtng_init() {
   }
   else {
     $databases['default']['default'] = dbtng_get_db_settings($db_url);
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function dbtng_menu() {
+  // FIXME this is hacky; it forces autoload to rebuild its cache to ensure
+  // everything is up-to-date, since we need it to be for this function.
+  if (function_exists('autoload_get_lookup')) {
+    // for autoload 1.x
+    autoload_get_lookup(TRUE);
+  }
+  else {
+    // autoload 2.x branch
+    autoload_registry_update();
   }
 }
 
@@ -699,7 +715,7 @@ function dbtng_escape_field($field) {
 }
 
 /**
- * Backported from Drupal 7. 
+ * Backported from Drupal 7.
  *
  * Process a URL query parameter array to remove unwanted elements.
  *

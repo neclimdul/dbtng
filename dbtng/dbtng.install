@@ -1,0 +1,10 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_enable().
+ */
+function dbtng_enable() {
+  // Clear all cache as recommended by autoload.
+  cache_clear_all();
+}
